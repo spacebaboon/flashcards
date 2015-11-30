@@ -4,11 +4,17 @@
   "description": "App for revising foreign language vocabulary. Written in React and Redux, with ES6 and Webpack.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-core/register --recursive"
+    "test": "mocha --compilers js:babel-core/register  --require ./test/test_helper.js --recursive",
+    "test:watch": "npm run test -- --watch"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com-spacebaboon:spacebaboon/flashcards.git"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -18,6 +24,11 @@
     "babel-core": "^6.2.1",
     "babel-preset-es2015": "^6.1.18",
     "chai": "^3.4.1",
+    "chai-immutable": "^1.5.3",
     "mocha": "^2.3.4"
+  },
+  "dependencies": {
+    "immutable": "^3.7.5",
+    "node-uuid": "^1.4.7"
   }
 }
