@@ -2,7 +2,23 @@ import {Map, List} from 'immutable';
 import {expect} from 'chai';
 import uuid from 'node-uuid';
 
-import {setWords, connectWords} from '../src/core';
+import {setWords, addTranslation, getWords} from '../src/core';
+
+const schmetterling = makeWord('der Schmetterling', 'German');
+const butterfly = makeWord('butterfly', 'English');
+const happy = makeWord('happy', 'English');
+const lucky = makeWord('lucky', 'English');
+const gluecklich = makeWord('glücklich', 'German');
+
+function makeWord(text, language) {
+    return Map({
+        id: uuid.v4(),
+        word: text,
+        language: language,
+        translations: List()
+    })
+}
+
 
 describe('application logic', () => {
 
@@ -27,23 +43,13 @@ describe('application logic', () => {
         });
     });
 
-    function makeWord(text,language){
-        return Map({
-            id: uuid.v4(),
-            word: text,
-            language: language,
-            translations: List()
-        })
-    }
-
     describe('connect words with translations', () => {
 
         it('connects an English and German word', () => {
-            const butterfly = makeWord('butterfly', 'English');
-            const schmetterling = makeWord('der Schmetterling', 'German');
+
             const words = List.of(butterfly, schmetterling);
             const state = setWords(Map(), words);
-            const nextState = connectWords(state, butterfly.get('id'), schmetterling.get('id'));
+            const nextState = addTranslation(state, butterfly, schmetterling);
 
             expect(nextState).to.equal(Map({
                 words: List.of(
@@ -63,13 +69,11 @@ describe('application logic', () => {
         });
 
         it('adds another translation', () => {
-            const happy = makeWord('happy', 'English');
-            const lucky = makeWord('lucky', 'English');
-            const gluecklich = makeWord('glücklich', 'German');
+
             const words = List.of(happy, lucky, gluecklich);
             const state = setWords(Map(), words);
-            const nextState = connectWords(state, gluecklich.get('id'), happy.get('id'));
-            const nextState2 = connectWords(nextState, gluecklich.get('id'), lucky.get('id'));
+            const nextState = addTranslation(state, gluecklich, happy);
+            const nextState2 = addTranslation(nextState, gluecklich, lucky);
 
             expect(nextState2).to.equal(Map({
                 words: List.of(
@@ -96,4 +100,38 @@ describe('application logic', () => {
 
         });
     });
+
+    describe('retrieve word lists', () => {
+
+        it('retrieves words in a language with all translations', () => {
+            const words = List.of(happy, lucky, gluecklich);
+            const state = setWords(Map(), words);
+            const nextState = addTranslation(state, gluecklich, happy);
+            const nextState2 = addTranslation(nextState, gluecklich, lucky);
+
+            const wordsByEnglish = getWords(nextState2, 'English');
+
+            expect(wordsByEnglish).to.equal(Map({
+                languages: List.of('English', 'German'),
+                words: List.of(
+                    Map({
+                        id: happy.get('id'),
+                        word: happy.get('word'),
+                        language: happy.get('language'),
+                        translations: List.of(Map({id: gluecklich.get('id'), word: gluecklich.get('word')}))
+                    }),
+                    Map({
+                        id: lucky.get('id'),
+                        word: lucky.get('word'),
+                        language: lucky.get('language'),
+                        translations: List.of(Map({id: gluecklich.get('id'), word: gluecklich.get('word')}))
+                    })
+                )})
+            );
+
+        });
+
+
+    });
+
 });
